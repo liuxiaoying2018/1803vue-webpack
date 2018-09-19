@@ -18,7 +18,23 @@ const config = {
             },
             {
                 test:/\.vue$/,
-                loader:'vue-loader'
+                loader:'vue-loader',
+                options:{
+                    //提取vue文件中的样式
+                    extractCSS:!isDev
+                }
+            },
+            {
+                test:/\.(jpg|png|jpeg|gif|svg)$/,
+                use:[
+                    {
+                        loader:'url-loader',
+                        options:{
+                            limit:1024,
+                            name:'[name]-[hash:base64:8].ext'
+                        }
+                    }
+                ]
             }
             
         ]
@@ -27,12 +43,18 @@ const config = {
         new HtmlWebpackPlugin({
             template: 'index.html',
             filename: 'index.html'
+        }),
+        new webpack.DefinePlugin({
+            'process.env':{
+                NODE_ENV: isDev? JSON.stringify('development'):JSON.stringify('production')
+            }
         })
     ]
 }
 
 if(isDev){
     //开发者模式
+    config.devtool = "cheap-module-eval-source-map"
     config.devServer = {
         port: 8080,
         host: '0.0.0.0',
@@ -79,11 +101,7 @@ else{
     }
     config.output.filename='[name]-[chunkhash:8].js'
     config.plugins.push(
-        new webpack.DefinePlugin({
-            'process.env':{
-                NODE_ENV:JSON.stringify('production')
-            }
-        }),
+       
         new ExtractTextWebpackPlugin('style-[contentHash:8].css'),
         new webpack.optimize.CommonsChunkPlugin({
             name: "vendor"
